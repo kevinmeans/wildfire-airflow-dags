@@ -1,23 +1,48 @@
 import requests
 import json
+import configparser
 
-PURPLE_AIR_FIELDS = "last_seen,name,latitude,longitude,pm2.5,pm2.5_a,pm2.5_b,pm10.0,pm10.0_a,pm10.0_b,confidence,channel_flags"
-PURPLE_AIR_US_COORDINATES = {
-    "nwlat": "68.68",
-    "nwlng": "-171.20",
-    "selat": "22.55",
-    "selng": "-62.48"
-}
 
 class PurpleAirAPI:
+    """
+    Class for making API calls to Purple Air sensors data.
+    """
+    config = configparser.ConfigParser()
+    config.read('config/purple_air_api.ini')
+
     def __init__(self, api_key):
+        """
+        Initializes the API client with the API key.
+
+        :param api_key: API key to access the data
+        """
+
         self.__api_key = api_key
-        self.__base_url = "https://api.purpleair.com"
-        self.__api_version = "v1"
+        self.__base_url = self.config['PURPLE_AIR']['url']
+        self.__api_version = self.config['PURPLE_AIR']['api_version']
 
-    def get_sensors_data(self, fields=PURPLE_AIR_FIELDS, location_type=0, read_keys=None, show_only=None, modified_since=None,
-                         max_age=None, nwlng=PURPLE_AIR_US_COORDINATES["nwlng"], nwlat=PURPLE_AIR_US_COORDINATES["nwlat"], selng=PURPLE_AIR_US_COORDINATES["selng"], selat=PURPLE_AIR_US_COORDINATES["selat"]):
+    def get_sensors_data(self, fields=config['PURPLE_AIR']['api_return_fields'], location_type=0, read_keys=None,
+                         show_only=None, modified_since=None, max_age=None,
+                         nwlng=config['PURPLE_AIR']['nwlng'],
+                         nwlat=config['PURPLE_AIR']['nwlat'],
+                         selng=config['PURPLE_AIR']['selng'],
+                         selat=config['PURPLE_AIR']['selat']):
+        """
+        Retrieves the sensors data from Purple Air API.
 
+        :param fields: (optional) fields to retrieve in the response (default: PURPLE_AIR_FIELDS)
+        :param location_type: (optional) location_type filter (default: 0)
+        :param read_keys: (optional) read_keys filter
+        :param show_only: (optional) show_only filter
+        :param modified_since: (optional) modified_since filter
+        :param max_age: (optional) max_age filter
+        :param nwlng: (optional) nwlng filter (default: PURPLE_AIR_US_COORDINATES["nwlng"])
+        :param nwlat: (optional) nwlat filter (default: PURPLE_AIR_US_COORDINATES["nwlat"])
+        :param selng: (optional) selng filter (default: PURPLE_AIR_US_COORDINATES["selng"])
+        :param selat: (optional) selat filter (default: PURPLE_AIR_US_COORDINATES["selat"])
+        :return: deserialized response from the API call
+        :raises ValueError: If the request is not successful
+        """
         request_url = self.__base_url + "/" + self.__api_version + "/sensors"
         # fields (REQUIRED)
         request_url += "?fields=" + fields

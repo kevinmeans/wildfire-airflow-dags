@@ -7,6 +7,18 @@ import configparser
 
 
 def add_gcp_connection(**kwargs):
+    """
+    This function adds a Google Cloud Platform connection to Airflow, if it does not already exist.
+
+    The connection information is read from the secret.ini file, which should be located in a config folder.
+    The file path to the Google Cloud Platform secret file is specified in the secret.ini file.
+
+    The connection id is set as "google_cloud_default" and the type as "google_cloud_platform". The extra fields specify
+    the scope as "https://www.googleapis.com/auth/cloud-platform" and the key path to the Google Cloud Platform secret file.
+
+    If a connection with the same connection id already exists in Airflow, the existing connection is updated with the
+    new extra field values.
+    """
     config = configparser.ConfigParser()
     config.read('config/secret.ini')
     file_path = config['SECRET']['gcp_secret_file_path']

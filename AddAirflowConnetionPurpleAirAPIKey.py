@@ -6,12 +6,20 @@ import configparser
 
 
 def add_purpleair_connection(**kwargs):
+    """
+    Function to add purple air connection to the Airflow UI
+
+    :param kwargs: Airflow context
+    :return: None
+    """
+    # Load the API key from a secret.ini file
     config = configparser.ConfigParser()
     config.read('config/secret.ini')
     file_path = config['SECRET']['purple_air_api_key_file_path']
     with open(file_path) as f:
         api_key = f.readline()
 
+    # Create the connection object with the API key
     new_conn = Connection(
         conn_id="purple_air_api_key",
         conn_type='generic',
@@ -20,12 +28,11 @@ def add_purpleair_connection(**kwargs):
 
     session = settings.Session()
 
-    # checking if connection exist
     if session.query(Connection).filter(Connection.conn_id == new_conn.conn_id).first():
         my_connection = session.query(Connection).filter(Connection.conn_id == new_conn.conn_id).one()
         session.add(my_connection)
         session.commit()
-    else:  # if it doesn't exit create one
+    else:
         session.add(new_conn)
         session.commit()
 
@@ -41,6 +48,7 @@ default_args = {
     "retry_delay": timedelta(minutes=5)
 }
 
+# Create the DAG
 dag = DAG("activate_purpleair_connection", default_args=default_args, schedule_interval="@once")
 
 with dag:
@@ -48,6 +56,7 @@ with dag:
         task_id='add_purpleair_connection_python',
         python_callable=add_purpleair_connection,
         provide_context=True,
+        dag_description="Add purple air connection to the Airflow UI"
     )
 
     activatePurpleAir
